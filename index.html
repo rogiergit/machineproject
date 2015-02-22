@@ -1,0 +1,232 @@
+<!DOCTYPE html>
+<html>
+
+  <head>
+    <meta charset='utf-8'>
+    <meta http-equiv="X-UA-Compatible" content="chrome=1">
+    <meta name="description" content="Machineproject : html view">
+
+    <link rel="stylesheet" type="text/css" media="screen" href="stylesheets/stylesheet.css">
+
+    <title>Machineproject</title>
+  </head>
+
+  <body>
+
+    <!-- HEADER -->
+    <div id="header_wrap" class="outer">
+        <header class="inner">
+          <a id="forkme_banner" href="https://github.com/rogiergit/machineproject">View on GitHub</a>
+
+          <h1 id="project_title">Machineproject</h1>
+          <h2 id="project_tagline">html view</h2>
+
+            <section id="downloads">
+              <a class="zip_download_link" href="https://github.com/rogiergit/machineproject/zipball/master">Download this project as a .zip file</a>
+              <a class="tar_download_link" href="https://github.com/rogiergit/machineproject/tarball/master">Download this project as a tar.gz file</a>
+            </section>
+        </header>
+    </div>
+
+    <!-- MAIN CONTENT -->
+    <div id="main_content_wrap" class="outer">
+      <section id="main_content" class="inner">
+        <p>&lt;!DOCTYPE html&gt;</p>
+
+<p></p>
+
+<p></p>
+
+<p>
+
+</p>
+
+<p></p>Machine Learning Project
+
+
+
+<p>
+</p>
+
+
+
+
+
+
+
+code{white-space: pre;}
+
+<p></p>
+
+
+
+
+  pre:not([class]) {
+    background-color: white;
+  }
+
+
+
+
+<p></p>
+
+<p></p>
+
+
+.main-container {
+  max-width: 940px;
+  margin-left: auto;
+  margin-right: auto;
+}
+code {
+  color: inherit;
+  background-color: rgba(0, 0, 0, 0.04);
+}
+img { 
+  max-width:100%; 
+  height: auto; 
+}
+
+
+<div>
+
+
+<div id="header">
+<h1>
+<a id="machine-learning-project" class="anchor" href="#machine-learning-project" aria-hidden="true"><span class="octicon octicon-link"></span></a>Machine Learning Project</h1>
+</div>
+
+<div id="loading-libraries">
+<h3>
+<a id="loading-libraries" class="anchor" href="#loading-libraries" aria-hidden="true"><span class="octicon octicon-link"></span></a>Loading libraries</h3>
+<pre><code>library(caret)</code></pre>
+<pre><code>## Loading required package: lattice
+## Loading required package: ggplot2</code></pre>
+<pre><code>library(dplyr)</code></pre>
+<pre><code>## 
+## Attaching package: 'dplyr'
+## 
+## The following object is masked from 'package:stats':
+## 
+##     filter
+## 
+## The following objects are masked from 'package:base':
+## 
+##     intersect, setdiff, setequal, union</code></pre>
+<pre><code>library(randomForest)</code></pre>
+<pre><code>## randomForest 4.6-10
+## Type rfNews() to see new features/changes/bug fixes.
+## 
+## Attaching package: 'randomForest'
+## 
+## The following object is masked from 'package:dplyr':
+## 
+##     combine</code></pre>
+</div>
+
+<div id="loading-the-data">
+<h3>
+<a id="loading-the-data" class="anchor" href="#loading-the-data" aria-hidden="true"><span class="octicon octicon-link"></span></a>Loading the data</h3>
+<p>We will load the data from the URL. The CSV has been download earlier.</p>
+<pre><code>setwd("E:\\Dev\\R\\Coursera\\8 Machine\\")
+#fileUrldata &lt;-"https://d396qusza40orc.cloudfront.net/predmachlearn/pml-training.csv"
+#download.file(fileUrldata, destfile = "./pml-training.csv") 
+data&lt;-read.csv("pml-training.csv")</code></pre>
+<p>We will only use the variables that don’t have NA values</p>
+<pre><code>dataframevar&lt;-select(data, num_window, roll_belt, pitch_belt, yaw_belt, total_accel_belt, gyros_belt_x, gyros_belt_y, gyros_belt_z, accel_belt_y, accel_belt_x, accel_belt_z, magnet_belt_x, magnet_belt_y, magnet_belt_z, roll_arm, pitch_arm, yaw_arm, total_accel_arm, gyros_arm_x, gyros_arm_y, gyros_arm_z, accel_arm_x, accel_arm_y, accel_arm_z, magnet_arm_x, magnet_arm_y, magnet_arm_z, roll_dumbbell, pitch_dumbbell, yaw_dumbbell, total_accel_dumbbell)
+
+dataframevar &lt;- sapply(dataframevar, as.numeric) #convert the variable to numeric
+dataframeclasse&lt;-select(data, classe) #select the classe variable
+dataframe&lt;-cbind(dataframeclasse,dataframevar) #bind the classe and other variables together
+unique(dataframe$classe) #check the classe values</code></pre>
+<pre><code>## [1] A B C D E
+## Levels: A B C D E</code></pre>
+</div>
+
+<div id="creating-train-and-test-datasets">
+<h3>
+<a id="creating-train-and-test-datasets" class="anchor" href="#creating-train-and-test-datasets" aria-hidden="true"><span class="octicon octicon-link"></span></a>Creating train and test datasets</h3>
+<p>We will split the dataset up into a training and a testset, so we can calculate a confidence matrix.</p>
+<pre><code>inTrain &lt;- createDataPartition(y=dataframe$classe, #we proberen class
+                               p=0.7, list=FALSE)
+training &lt;- dataframe[inTrain,]
+testing &lt;- dataframe[-inTrain,]
+dim(training); dim(testing)</code></pre>
+<pre><code>## [1] 13737    32</code></pre>
+<pre><code>## [1] 5885   32</code></pre>
+</div>
+
+<div id="random-forest-model">
+<h3>
+<a id="random-forest-model" class="anchor" href="#random-forest-model" aria-hidden="true"><span class="octicon octicon-link"></span></a>Random Forest model</h3>
+<p>From the selected variables we will create a Random Forest model based on the training set.</p>
+<pre><code>modFit &lt;- randomForest(classe~ .,data=training,method="rf") </code></pre>
+</div>
+
+<div id="predicting-the-test-dataset">
+<h3>
+<a id="predicting-the-test-dataset" class="anchor" href="#predicting-the-test-dataset" aria-hidden="true"><span class="octicon octicon-link"></span></a>Predicting the test dataset</h3>
+<p>Using the the created modFit model, we’ll predict the classe in the testing dataaset.</p>
+<pre><code>pred &lt;- predict(modFit,testing)
+testing$predRight &lt;- pred==testing$classe #compare prediction with observed</code></pre>
+<p>From our confusion matrix we can see that the results have been predicted accurately.</p>
+<pre><code>confusionMatrix(pred,testing$classe)</code></pre>
+<pre><code>## Confusion Matrix and Statistics
+## 
+##           Reference
+## Prediction    A    B    C    D    E
+##          A 1673    1    0    0    0
+##          B    0 1137    2    1    1
+##          C    0    0 1021    5    0
+##          D    1    1    3  958    1
+##          E    0    0    0    0 1080
+## 
+## Overall Statistics
+##                                           
+##                Accuracy : 0.9973          
+##                  95% CI : (0.9956, 0.9984)
+##     No Information Rate : 0.2845          
+##     P-Value [Acc &gt; NIR] : &lt; 2.2e-16       
+##                                           
+##                   Kappa : 0.9966          
+##  Mcnemar's Test P-Value : NA              
+## 
+## Statistics by Class:
+## 
+##                      Class: A Class: B Class: C Class: D Class: E
+## Sensitivity            0.9994   0.9982   0.9951   0.9938   0.9982
+## Specificity            0.9998   0.9992   0.9990   0.9988   1.0000
+## Pos Pred Value         0.9994   0.9965   0.9951   0.9938   1.0000
+## Neg Pred Value         0.9998   0.9996   0.9990   0.9988   0.9996
+## Prevalence             0.2845   0.1935   0.1743   0.1638   0.1839
+## Detection Rate         0.2843   0.1932   0.1735   0.1628   0.1835
+## Detection Prevalence   0.2845   0.1939   0.1743   0.1638   0.1835
+## Balanced Accuracy      0.9996   0.9987   0.9970   0.9963   0.9991</code></pre>
+</div>
+
+<p></p>
+</div>
+
+
+
+
+
+
+
+<p>
+</p>
+      </section>
+    </div>
+
+    <!-- FOOTER  -->
+    <div id="footer_wrap" class="outer">
+      <footer class="inner">
+        <p class="copyright">Machineproject maintained by <a href="https://github.com/rogiergit">rogiergit</a></p>
+        <p>Published with <a href="http://pages.github.com">GitHub Pages</a></p>
+      </footer>
+    </div>
+
+    
+
+  </body>
+</html>
