@@ -1,0 +1,67 @@
+---
+title: "Machine Learning Project"
+output: html_document
+---
+
+
+### Loading libraries
+```{r}
+library(caret)
+library(dplyr)
+library(randomForest)
+```
+
+### Loading the data
+We will load the data from the URL. The CSV has been download earlier.
+
+```{r}
+setwd("E:\\Dev\\R\\Coursera\\8 Machine\\")
+#fileUrldata <-"https://d396qusza40orc.cloudfront.net/predmachlearn/pml-training.csv"
+#download.file(fileUrldata, destfile = "./pml-training.csv") 
+data<-read.csv("pml-training.csv")
+
+```
+
+
+We will only use the variables that don't have NA values
+```{r}
+dataframevar<-select(data, num_window, roll_belt, pitch_belt, yaw_belt, total_accel_belt, gyros_belt_x, gyros_belt_y, gyros_belt_z, accel_belt_y, accel_belt_x, accel_belt_z, magnet_belt_x, magnet_belt_y, magnet_belt_z, roll_arm, pitch_arm, yaw_arm, total_accel_arm, gyros_arm_x, gyros_arm_y, gyros_arm_z, accel_arm_x, accel_arm_y, accel_arm_z, magnet_arm_x, magnet_arm_y, magnet_arm_z, roll_dumbbell, pitch_dumbbell, yaw_dumbbell, total_accel_dumbbell)
+
+dataframevar <- sapply(dataframevar, as.numeric) #convert the variable to numeric
+dataframeclasse<-select(data, classe) #select the classe variable
+dataframe<-cbind(dataframeclasse,dataframevar) #bind the classe and other variables together
+unique(dataframe$classe) #check the classe values
+```` 
+
+### Creating train and test datasets
+We will split the dataset up into a training and a testset, so we can calculate a confidence matrix.
+
+```{r}
+inTrain <- createDataPartition(y=dataframe$classe, #we proberen class
+                               p=0.7, list=FALSE)
+training <- dataframe[inTrain,]
+testing <- dataframe[-inTrain,]
+dim(training); dim(testing)
+```
+
+### Random Forest model
+From the selected variables we will create a Random Forest model based on the training set.
+```{r}
+modFit <- randomForest(classe~ .,data=training,method="rf") 
+```
+
+
+### Predicting the test dataset
+Using the the created modFit model, we'll predict the classe in the testing dataaset.
+
+```{r}
+pred <- predict(modFit,testing)
+testing$predRight <- pred==testing$classe #compare prediction with observed
+```
+
+From our confusion matrix we can see that the results have been predicted accurately.
+```{r}
+confusionMatrix(pred,testing$classe)
+```
+
+
